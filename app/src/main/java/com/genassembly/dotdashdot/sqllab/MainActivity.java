@@ -34,6 +34,10 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     if (!gameEdit.getText().toString().isEmpty()) {
+                        if (SQLDB.getInstance(getBaseContext()).doesGameAlreadyExist(Integer.valueOf(gameEdit.getText().toString()))) {
+                            Toast toast = Toast.makeText(getBaseContext(), "Game already exists in database", Toast.LENGTH_LONG);
+                            toast.show();
+                        } else {
                         for (int i = 0; i < listy.getChildCount(); i++) {
                             View team = listy.getChildAt(i);
 
@@ -44,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.i("Main", "Printing...");
                         gameEdit.setText("");
                         db.getDB().printGames();
+                    }
                     } else {
                         Toast.makeText(self, "Game number not inserted!", Toast.LENGTH_LONG).show();
                     }

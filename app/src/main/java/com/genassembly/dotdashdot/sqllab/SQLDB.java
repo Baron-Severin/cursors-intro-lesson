@@ -161,10 +161,21 @@ public class SQLDB extends SQLiteOpenHelper {
     }
 
     public boolean insertGame(int team, int points, boolean foundIdol, int game) {
-        /* TODO : Check to make sure the game doesn't already exist in the database*/
-        SQLiteDatabase db = this.getWritableDatabase();
-        games.insertRow(db, team, points, foundIdol, game);
-        return true;
+            SQLiteDatabase db = this.getWritableDatabase();
+            games.insertRow(db, team, points, foundIdol, game);
+            return true;
+    }
+
+    public boolean doesGameAlreadyExist(int game) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + games.getTblName() + " WHERE game = '" + game + "';", null);
+        if (cursor.getCount() == 0) {
+            cursor.close();
+            return false;
+        } else {
+            cursor.close();
+            return true;
+        }
     }
 
     public void printGames(){
