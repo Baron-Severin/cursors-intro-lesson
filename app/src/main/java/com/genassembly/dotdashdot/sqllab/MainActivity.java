@@ -21,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         self = this;
+        SQLDB.getInstance(this).setContext(this);
 
         final InitDB db = new InitDB(this);
         final ListView listy = (ListView) findViewById(R.id.mainList);
@@ -61,8 +62,22 @@ public class MainActivity extends AppCompatActivity {
             stats.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent i = new Intent(self, StatsActivity.class);
-                    startActivity(i);
+                    if (db.getDB().getSumPoints().size() != 0) {
+                        Intent i = new Intent(self, StatsActivity.class);
+                        startActivity(i);
+                    } else {
+                        Toast.makeText(getBaseContext(), "No games in database", Toast.LENGTH_SHORT);
+                    }
+                }
+            });
+        }
+
+        Button dropTable = (Button) findViewById(R.id.drop_table);
+        if (dropTable != null) {
+            dropTable.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    SQLDB.getInstance(getBaseContext()).dropGames();
                 }
             });
         }

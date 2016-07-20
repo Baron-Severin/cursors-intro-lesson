@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.w3c.dom.Comment;
 
@@ -15,6 +16,12 @@ import java.util.ArrayList;
  * Created by Mauve3 on 7/18/16.
  */
 public class SQLDB extends SQLiteOpenHelper {
+
+    private Context mContext;
+
+    public void setContext(Context newContext) {
+        mContext = newContext;
+    }
 
     private interface  dbs {
 
@@ -208,6 +215,14 @@ public class SQLDB extends SQLiteOpenHelper {
         cursor.close();
 
         return pointList;
+    }
+
+    public void dropGames() {
+        SQLiteDatabase db = getWritableDatabase();
+        db.execSQL("DROP TABLE IF EXISTS " + teams.getTblName());
+        db.execSQL("DROP TABLE IF EXISTS " + games.getTblName());
+        onCreate(db);
+        Toast.makeText(mContext, "Database Flushed!", Toast.LENGTH_LONG).show();
     }
 
 }
