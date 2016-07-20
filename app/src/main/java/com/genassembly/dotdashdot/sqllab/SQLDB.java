@@ -12,6 +12,7 @@ import android.widget.Toast;
 import org.w3c.dom.Comment;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 /**
@@ -227,22 +228,30 @@ public class SQLDB extends SQLiteOpenHelper {
         Toast.makeText(mContext, "Database Flushed!", Toast.LENGTH_LONG).show();
     }
 // return int[]
-    public String getMostWinsAndLosses() {
-
+    public String getMostWins() {
         SQLiteDatabase db = getReadableDatabase();
-        Cursor gameNumber = db.rawQuery("SELECT game FROM games GROUP BY game;", null);
-        ArrayList<Integer> gamesPlayed = new ArrayList<>();
 
-        Log.i("SEVTEST: ", "" + "BREAK");
-        gameNumber.moveToFirst();
-        while (!gameNumber.isAfterLast()){
-            int nextGame = gameNumber.getInt(gameNumber.getColumnIndexOrThrow("game"));
-            gamesPlayed.add(nextGame);
-            Log.i("SEVTEST: ", "" + nextGame);
-            gameNumber.moveToNext();
-        }
-        gameNumber.close();
+        ArrayList<Integer> gamesPlayed = getGamesPlayed();
 
+//        ArrayList<Integer> winners = new ArrayList<>();
+//        for (int i : gamesPlayed) {
+//            Cursor newCursor;
+//            newCursor = db.rawQuery("SELECT team FROM games "
+//                    + "WHERE game = '" + i + "' ORDER BY points DESC;", null);
+//            newCursor.moveToFirst();
+//            winners.add(newCursor.getInt(newCursor.getColumnIndexOrThrow("team")));
+//            newCursor.close();
+//        }
+
+        ArrayList<Integer> winners = findWinners(gamesPlayed, db);
+
+        int winInt = getWinningist(winners);
+        String winString = getTeamName(winInt);
+        return winString;
+
+    }
+
+    public ArrayList<Integer> findWinners(ArrayList<Integer> gamesPlayed, SQLiteDatabase db) {
         ArrayList<Integer> winners = new ArrayList<>();
         for (int i : gamesPlayed) {
             Cursor newCursor;
@@ -252,12 +261,8 @@ public class SQLDB extends SQLiteOpenHelper {
             winners.add(newCursor.getInt(newCursor.getColumnIndexOrThrow("team")));
             newCursor.close();
         }
-        Log.i("SEVTEST: ", "Winners =" + winners);
-
-        int winInt = getWinningist(winners);
-        String winString = getTeamName(winInt);
-        return winString;
-
+        Log.i("SEVTEST: ", "winners: " + winners);
+        return winners;
     }
 
     public int getWinningist (ArrayList<Integer> arrayList) {
@@ -281,8 +286,6 @@ public class SQLDB extends SQLiteOpenHelper {
                 mostWinningist = i;
             }
         }
-
-        Log.i("SEVTEST: ", "winningist: " + mostWinningist);
         return mostWinningist;
     }
 
@@ -294,5 +297,79 @@ public class SQLDB extends SQLiteOpenHelper {
         mycursor.close();
         return winner;
     }
+
+    public ArrayList<Integer> getGamesPlayed() {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor gameNumber = db.rawQuery("SELECT game FROM games GROUP BY game;", null);
+        ArrayList<Integer> gamesPlayed = new ArrayList<>();
+
+        gameNumber.moveToFirst();
+        while (!gameNumber.isAfterLast()){
+            int nextGame = gameNumber.getInt(gameNumber.getColumnIndexOrThrow("game"));
+            gamesPlayed.add(nextGame);
+            gameNumber.moveToNext();
+        }
+        gameNumber.close();
+        Collections.sort(gamesPlayed);
+        return gamesPlayed;
+    }
+
+    public String getLosingStreak() {
+        SQLiteDatabase db = getReadableDatabase();
+
+        ArrayList<Integer> gamesPlayed = getGamesPlayed();
+        ArrayList<Integer> winners = findWinners(gamesPlayed, db);
+
+        int shitTeam = 0;
+        int shitRecord = -1;
+        HashMap<Integer, Integer> currentStreaks = new HashMap<>();
+
+        for (int i = 0; i < 6; i++) {
+            // streak starts at 0
+            currentStreaks.put(i, 0);
+        }
+
+        for (int j : gamesPlayed){
+            for (int i = 0; i < 6; i++) {
+                int losses = currentStreaks.get(i);
+                currentStreaks.put(i, (losses+1));
+            }
+//            int currentShit = ((currentStreaks.get(winners.get(j))) - 1);
+//            int currentShit = ((currentStreaks.get(winners.get(gamesPlayed.indexOf(j)))));
+
+            int currentGame = gamesPlayed.indexOf(j);
+            int winnerOfCurrent = winners.get(currentGame);
+//            int currentShit = currentStreaks.get(winnerOfCurrent);
+
+            currentStreaks.put(winnerOfCurrent, 0);
+            for (int k = 0; k < 6; k++) {
+                if (currentStreaks.get(k) > shitRecord) {
+                    shitRecord = currentStreaks.get(k);
+                    shitTeam = k;
+                }
+            }
+
+
+//            if (currentShit > shitRecord) {
+//                shitRecord = currentShit;
+//                shitTeam = winners.get(currentGame);
+//            }
+        }
+
+        for (int i = 0; i < 6; i++) {
+            int currentShit = (currentStreaks.get(i));
+            if (currentShit > shitRecord) {
+                shitRecord = currentShit;
+                shitTeam = i;
+            }
+        }
+
+        Log.i("SEVTEST: ", "shittest team: " + shitTeam);
+
+        String shitTeamName = getTeamName(shitTeam);
+        return shitTeamName;
+
+    }
+
 
 }
