@@ -2,6 +2,7 @@ package com.genassembly.dotdashdot.sqllab;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -11,6 +12,7 @@ import android.widget.Toast;
 import org.w3c.dom.Comment;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Created by Mauve3 on 7/18/16.
@@ -223,6 +225,74 @@ public class SQLDB extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + games.getTblName());
         onCreate(db);
         Toast.makeText(mContext, "Database Flushed!", Toast.LENGTH_LONG).show();
+    }
+// return int[]
+    public String getMostWinsAndLosses() {
+
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor gameNumber = db.rawQuery("SELECT game FROM games GROUP BY game;", null);
+        ArrayList<Integer> gamesPlayed = new ArrayList<>();
+
+        Log.i("SEVTEST: ", "" + "BREAK");
+        gameNumber.moveToFirst();
+        while (!gameNumber.isAfterLast()){
+            int nextGame = gameNumber.getInt(gameNumber.getColumnIndexOrThrow("game"));
+            gamesPlayed.add(nextGame);
+            Log.i("SEVTEST: ", "" + nextGame);
+            gameNumber.moveToNext();
+        }
+        gameNumber.close();
+
+        ArrayList<Integer> winners = new ArrayList<>();
+        for (int i : gamesPlayed) {
+            Cursor newCursor;
+            newCursor = db.rawQuery("SELECT team FROM games "
+                    + "WHERE game = '" + i + "' ORDER BY points DESC;", null);
+            newCursor.moveToFirst();
+            winners.add(newCursor.getInt(newCursor.getColumnIndexOrThrow("team")));
+            newCursor.close();
+        }
+        Log.i("SEVTEST: ", "Winners =" + winners);
+
+        int winInt = getWinningist(winners);
+        String winString = getTeamName(winInt);
+        return winString;
+
+    }
+
+    public int getWinningist (ArrayList<Integer> arrayList) {
+        HashMap<Integer, Integer> winningist = new HashMap<>();
+
+        for (int i : arrayList) {
+            winningist.put(i, 0);
+        }
+
+        for (int i : arrayList) {
+            int tempint = winningist.get(i);
+            winningist.put(i, tempint+1);
+        }
+
+        int mostWinningist = arrayList.get(0);
+        int wins = 0;
+        for (int i : arrayList) {
+            int temptInt = winningist.get(i);
+            if (temptInt > wins) {
+                wins = temptInt;
+                mostWinningist = i;
+            }
+        }
+
+        Log.i("SEVTEST: ", "winningist: " + mostWinningist);
+        return mostWinningist;
+    }
+
+    public String getTeamName(int myint) {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor mycursor = db.rawQuery("SELECT name FROM teams WHERE _id = '" + (myint+1) + "';", null);
+        mycursor.moveToFirst();
+        String winner = mycursor.getString(mycursor.getColumnIndexOrThrow("name"));
+        mycursor.close();
+        return winner;
     }
 
 }

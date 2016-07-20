@@ -21,7 +21,8 @@ public class StatsActivity extends AppCompatActivity {
         points.setText(db.getDB().getSumPoints().get(0));
 
         TextView gWon = (TextView) findViewById(R.id.mostGamesWon);
-        /* TODO : add the team with the most games won (Win = Top score for a particular game)*/
+        String winner = SQLDB.getInstance(this).getMostWinsAndLosses();
+        gWon.setText(winner);
 
         TextView longestLoseStreak = (TextView) findViewById(R.id.longestStreak);
         /* TODO : add the team with the longest lose streak (Longest consecutive games gone without winning)*/

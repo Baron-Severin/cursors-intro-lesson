@@ -11,7 +11,6 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
-/* TODO : Reset DB when button is clicked*/
 public class MainActivity extends AppCompatActivity {
 
     private Context self;
